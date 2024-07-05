@@ -1,1 +1,1 @@
-# BreadcrumbsSHT20_Temp_Hum_Sensor_RS485CANHAT
+# SHT20_Temp_Hum_Sensor_RS485CANHAT
