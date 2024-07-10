@@ -7,26 +7,30 @@ import csv
 import ftplib
 import mariadb
 import sys
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configuration variables
-FTP_HOSTNAME = "192.168.46.3"
-FTP_USERNAME = "anonymous"
-FTP_PASSWORD = "zaiman.a.purnama@gmail.com"
-FTP_DIRECTORY = '/XY-MD02/'
+FTP_HOSTNAME = os.getenv("FTP_HOSTNAME")
+FTP_USERNAME = os.getenv("FTP_USERNAME")
+FTP_PASSWORD = os.getenv("FTP_PASSWORD")
+FTP_DIRECTORY = os.getenv("FTP_DIRECTORY")
 
-DB_USER = "zaim"
-DB_PASSWORD = "admin"
-DB_HOST = "localhost"
-DB_PORT = 3306
-DB_DATABASE = "test1"
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = int(os.getenv("DB_PORT"))
+DB_DATABASE = os.getenv("DB_DATABASE")
 
-SERIAL_PORT = "/dev/ttyS0"
-BAUD_RATE = 9600
-RS485_RE_PIN = 4
+SERIAL_PORT = os.getenv("SERIAL_PORT")
+BAUD_RATE = int(os.getenv("BAUD_RATE"))
+RS485_RE_PIN = int(os.getenv("RS485_RE_PIN"))
 
-DEVICE_NAME = 'TH1101'
-DELTA_HOURS = 1
-SLEEP_INTERVAL = 3
+DEVICE_NAME = os.getenv("DEVICE_NAME")
+DELTA_HOURS = int(os.getenv("DELTA_HOURS"))
+SLEEP_INTERVAL = int(os.getenv("SLEEP_INTERVAL"))
 
 # Connect to MariaDB Platform
 def connect_to_db():
@@ -105,35 +109,4 @@ stop = start + delta
 while True:
     if datetime.datetime.now() > stop:
         with open(temp_filename, 'rb') as file:
-            ftp_server.storbinary('APPE ' + master_filename, file)
-        
-        with open(temp_filename, 'r') as file:
-            reader = csv.reader(file)
-            for row in reader:
-                cur.execute(
-                    "INSERT INTO datastreams (created_at, sensor_id, value) VALUES (?, 'TT1001', ?)", (row[0], row[1])
-                )
-                cur.execute(
-                    "INSERT INTO datastreams (created_at, sensor_id, value) VALUES (?, 'HT1001', ?)", (row[0], row[2])
-                )
-                conn.commit()
-
-        os.remove(temp_filename)
-        with open(temp_filename, 'w') as csvfile:
-            csvwriter = csv.writer(csvfile, delimiter=',')
-
-        start = stop
-        stop = start + delta
-
-    temphumid = read_register(get_temphumid)
-    temp = float(int.from_bytes(temphumid[3:5], byteorder='big')) / 10
-    humid = float(int.from_bytes(temphumid[5:7], byteorder='big')) / 10
-    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    print(now, ",", temp, ",", humid)
-
-    new_row = [[now, temp, humid]]
-    with open(temp_filename, 'a', newline='') as csvfile:
-        csvwriter = csv.writer(csvfile, delimiter=',')
-        csvwriter.writerows(new_row)
-    
-    time.sleep(SLEEP_INTERVAL)
+            ftp_server.storbinary('APPE ' +
